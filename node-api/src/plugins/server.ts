@@ -1,7 +1,14 @@
 import fp from 'fastify-plugin'
 import { FastifyInstance } from 'fastify'
+import { promocodeShema } from './promocodes/promocodes.schema'
+import { promocodeRoutes } from './promocodes/promocodes.route'
 
 export const startServer = fp(async function (server: FastifyInstance) {
+    for (const schema of promocodeShema) {
+        server.addSchema(schema)
+    }
+
+    server.register(promocodeRoutes, { prefix: '/promocode' })
     // Hooks
     server.addHook('onRequest', async (request) => {
         server.log.info({ request }, 'incoming request')
