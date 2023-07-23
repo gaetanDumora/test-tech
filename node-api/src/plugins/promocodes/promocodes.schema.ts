@@ -14,7 +14,7 @@ const ageRestriction = z.object({
 })
 export type AgeRestrictionsType = z.infer<typeof ageRestriction>
 
-const meteoRestriction = z.object({
+const weatherRestriction = z.object({
     is: z.string(),
     temp: z.object({
         eq: z.string().optional(),
@@ -22,7 +22,7 @@ const meteoRestriction = z.object({
         gt: z.string().optional(),
     }),
 })
-export type MeteoRestrictionsType = z.infer<typeof meteoRestriction>
+export type WeatherRestrictionsType = z.infer<typeof weatherRestriction>
 
 const restrictionsKeys = z.union([
     z.literal('@meteo'),
@@ -36,7 +36,7 @@ export type RestrictionsKeys = z.infer<typeof restrictionsKeys>
 const restrictionsValues = z.union([
     dateRestriction,
     ageRestriction,
-    meteoRestriction,
+    weatherRestriction,
 ])
 type RestrictionsValues = z.infer<typeof restrictionsValues>
 
