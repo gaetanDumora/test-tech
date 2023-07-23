@@ -22,6 +22,7 @@ type WeatherResponseType = {
 export const getCityCoordinates = async (city: string) => {
     const queryURL = `${WEATHER_API_DOMAIN}/geo/1.0/direct?q=${city}&limit=1&appid=${TOKEN}`
     const { data, status } = await axios.get<CityResponseType[]>(queryURL)
+
     if (status === 200 && data.length) {
         const { lat, lon } = data[0]
         return { lat, lon }

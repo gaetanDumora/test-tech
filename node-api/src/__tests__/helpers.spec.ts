@@ -2,7 +2,10 @@ import {
     AgeRestrictionsType,
     DateRestrictionsType,
 } from '../plugins/promocodes/promocodes.schema'
-import { getCityCoordinates } from '../plugins/weather/weather.service'
+import {
+    getCityCoordinates,
+    getWeatherAtCity,
+} from '../plugins/weather/weather.service'
 import { verifyDateRange, verifyAgeRange } from '../utils/helpers'
 
 const mock = {
@@ -80,9 +83,14 @@ describe('verifyAgeRange', () => {
     })
 })
 
-describe('getCityCoordinates', () => {
+describe('weather service', () => {
     it('should return Lyon coordinates', async () => {
         const { lat, lon } = await getCityCoordinates(mock.meteo.town)
         expect({ lat, lon }).toStrictEqual({ lat: 45.7578137, lon: 4.8320114 })
+    })
+    it.only('should return an error if the city is unknown', async () => {
+        await expect(() => getWeatherAtCity('unknowCity')).rejects.toThrowError(
+            `unknow city: unknowCity`,
+        )
     })
 })
