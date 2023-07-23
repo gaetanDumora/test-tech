@@ -72,10 +72,28 @@ const promocodeResponse = z.object({
     _id: z.string(),
 })
 
+const validatePromocodePayload = z.object({
+    promocode_name: z.string(),
+    arguments: z.record(z.string(), z.unknown()),
+})
+export type ValidatePromocodeType = z.infer<typeof validatePromocodePayload>
+
+const validatedPromocodeResponse = z.object({
+    promocode_name: z.string(),
+    status: z.string(),
+    avantage: z.record(z.string(), z.unknown()).optional(),
+    reasons: z.record(z.string(), z.unknown()).optional(),
+})
+export type ValidateResponsePromocodeType = z.infer<
+    typeof validatedPromocodeResponse
+>
+
 export const { schemas: promocodeShema, $ref } = buildJsonSchemas(
     {
         promocodePayload,
         promocodeResponse,
+        validatePromocodePayload,
+        validatedPromocodeResponse,
     },
     { $id: 'promocodeShema' },
 )
