@@ -1,6 +1,11 @@
 import {
     AgeRestrictionsType,
+    BinaryKeys,
     DateRestrictionsType,
+    DeepRestrictionsType,
+    RestrictionsKeys,
+    RestrictionsValues,
+    ValidatePromocodeType,
     WeatherRestrictionsType,
 } from '../plugins/promocodes/promocodes.schema'
 import { getWeatherAtCity } from '../plugins/weather/weather.service'
@@ -66,4 +71,63 @@ export const verifyWeather = async (
     if (gt) return isGreater && isSameDescription
     if (lt) return isFewer && isSameDescription
     if (eq) return temp === parseInt(eq, 10) && isSameDescription
+}
+
+type CachedResult = {
+    context?: BinaryKeys
+    results: { key: string; result: boolean }[]
+}
+type Conditions = Pick<ValidatePromocodeType, 'arguments'>
+
+const addToCache = (
+    cachedResults: CachedResult[],
+    resultToAdd: { key: string; result: boolean },
+    context?: BinaryKeys,
+) => {
+    const last = cachedResults.at(-1)
+
+    last && context === last.context
+        ? last.results.push(resultToAdd)
+        : cachedResults.push({ context, results: [resultToAdd] })
+
+    return cachedResults
+}
+export const deepVerify = (
+    restriction: DeepRestrictionsType | RestrictionsValues,
+    conditions: Conditions,
+) => {
+    const results: CachedResult[] = []
+    const actionsByKey: { [key in RestrictionsKeys]?: any } = {
+        '@age': verifyAgeRange,
+        '@date': verifyDateRange,
+        '@meteo': verifyWeather,
+    }
+
+    const deepTraverse = (
+        restriction: DeepRestrictionsType | RestrictionsValues,
+        conditions: Conditions,
+        context?: BinaryKeys,
+    ) => {
+        for (const [key, value] of Object.entries(restriction)) {
+            // Simply an object, let get and store its result
+            if (!Array.isArray(value)) {
+                const result = actionsByKey[key as RestrictionsKeys](
+                    value,
+                    conditions,
+                )
+                addToCache(results, { key, result }, context)
+            }
+            // If not, group the rest to be ready for the next loop
+            else {
+                const nextRestriction = value.reduce((acc, curr) => {
+                    return { ...acc, ...curr }
+                })
+                // Continue until we can verify the next object
+                deepTraverse(nextRestriction, conditions, key as BinaryKeys)
+            }
+        }
+    }
+
+    deepTraverse(restriction, conditions)
+    return { results }
 }

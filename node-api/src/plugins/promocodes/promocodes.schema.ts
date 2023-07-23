@@ -24,21 +24,22 @@ const weatherRestriction = z.object({
 })
 export type WeatherRestrictionsType = z.infer<typeof weatherRestriction>
 
+const binaryKeys = z.union([z.literal('@or'), z.literal('@and')])
 const restrictionsKeys = z.union([
     z.literal('@meteo'),
     z.literal('@age'),
     z.literal('@date'),
-    z.literal('@or'),
-    z.literal('@and'),
+    binaryKeys,
 ])
 export type RestrictionsKeys = z.infer<typeof restrictionsKeys>
+export type BinaryKeys = z.infer<typeof binaryKeys>
 
 const restrictionsValues = z.union([
     dateRestriction,
     ageRestriction,
     weatherRestriction,
 ])
-type RestrictionsValues = z.infer<typeof restrictionsValues>
+export type RestrictionsValues = z.infer<typeof restrictionsValues>
 
 // Zod won't be able to infer the type because it is recursive.
 export type DeepRestrictionsType = {
