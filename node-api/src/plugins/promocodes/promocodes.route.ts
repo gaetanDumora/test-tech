@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { registerMovementHandler } from './promocodes.controller'
+import { registerPromocodeHandler } from './promocodes.controller'
 import { $ref } from './promocodes.schema'
 
 export async function promocodeRoutes(server: FastifyInstance) {
@@ -13,6 +13,6 @@ export async function promocodeRoutes(server: FastifyInstance) {
                 },
             },
         },
-        registerMovementHandler,
+        registerPromocodeHandler,
     )
 }

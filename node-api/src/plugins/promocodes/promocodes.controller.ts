@@ -2,7 +2,7 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 import { PromocodeType } from './promocodes.schema'
 import { promocodeDB } from './promocodes.service'
 
-export const registerMovementHandler = async (
+export const registerPromocodeHandler = async (
     request: FastifyRequest<{ Body: PromocodeType }>,
     reply: FastifyReply,
 ) => {
