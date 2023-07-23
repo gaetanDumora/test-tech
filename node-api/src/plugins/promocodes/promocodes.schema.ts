@@ -63,7 +63,7 @@ const promocodePayload = z.object({
     _id: z.string(),
     name: z.string(),
     avantage: z.record(z.string(), z.number()),
-    restrictions: z.array(z.union([restrictionsValues, deepRestrictions])),
+    restrictions: z.array(z.record(restrictionsKeys, z.any())),
 })
 export type PromocodeType = z.infer<typeof promocodePayload>
 
@@ -74,7 +74,10 @@ const promocodeResponse = z.object({
 
 const validatePromocodePayload = z.object({
     promocode_name: z.string(),
-    arguments: z.record(z.string(), z.unknown()),
+    arguments: z.object({
+        age: z.number().optional(),
+        meteo: z.object({ town: z.string() }).optional(),
+    }),
 })
 export type ValidatePromocodeType = z.infer<typeof validatePromocodePayload>
 
