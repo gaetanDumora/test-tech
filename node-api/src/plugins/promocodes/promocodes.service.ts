@@ -1,6 +1,5 @@
+import { DB } from '../database/database'
 import { PromocodeType } from './promocodes.schema'
-
-const DB: Map<string | number, PromocodeType> = new Map()
 
 export const promocodeDB = {
     get: (name: string): Promise<PromocodeType> => {
