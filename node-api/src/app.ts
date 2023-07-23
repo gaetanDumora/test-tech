@@ -1,7 +1,8 @@
 import fastify from 'fastify'
 import { startServer } from './plugins/server.js'
 import { loadServerConfig } from './plugins/config/server.config.js'
-
+import { getWeatherAtCity } from './plugins/weather/weather.service.js'
+// getWeatherAtCity('Lyon')
 const main = async () => {
     process.on('unhandledRejection', (err) => {
         console.error(err)
