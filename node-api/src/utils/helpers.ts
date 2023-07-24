@@ -32,16 +32,17 @@ export const verifyDateRange = (dateRestrictions: DateRestrictionsType) => {
 }
 export const verifyAgeRange = (
     ageRestriction: AgeRestrictionsType,
-    age: number,
+    conditions: Conditions,
 ) => {
+    const { age } = conditions
     const { eq, gt, lt } = ageRestriction
 
     if ((eq && gt && lt) || (eq && (gt || lt))) {
         throw new Error('wrong age condition provided')
     }
 
-    const isGreater = gt && age > gt
-    const isFewer = lt && age < lt
+    const isGreater = gt && age! > gt
+    const isFewer = lt && age! < lt
 
     if (gt && lt) return isGreater && isFewer
     if (gt) return isGreater
@@ -51,13 +52,14 @@ export const verifyAgeRange = (
 }
 export const verifyWeather = async (
     weatherRestriction: WeatherRestrictionsType,
-    city: string,
+    conditions: Conditions,
 ) => {
+    const { meteo } = conditions
     const {
         temp: { eq, gt, lt },
     } = weatherRestriction
 
-    const { is, temp } = await getWeatherAtCity(city)
+    const { is, temp } = await getWeatherAtCity(meteo?.town!)
 
     if ((eq && gt && lt) || (eq && (gt || lt))) {
         throw new Error('wrong weather condition provided')
@@ -77,7 +79,10 @@ type CachedResult = {
     context?: BinaryKeys
     results: { key: string; result: boolean }[]
 }
-type Conditions = Pick<ValidatePromocodeType, 'arguments'>
+type Conditions = {
+    age?: number
+    meteo?: { town: string }
+}
 
 const addToCache = (
     cachedResults: CachedResult[],
@@ -92,7 +97,7 @@ const addToCache = (
 
     return cachedResults
 }
-export const deepVerify = (
+export const deepVerify = async (
     restriction: DeepRestrictionsType | RestrictionsValues,
     conditions: Conditions,
 ) => {
@@ -103,7 +108,7 @@ export const deepVerify = (
         '@meteo': verifyWeather,
     }
 
-    const deepTraverse = (
+    const deepTraverse = async (
         restriction: DeepRestrictionsType | RestrictionsValues,
         conditions: Conditions,
         context?: BinaryKeys,
@@ -111,7 +116,7 @@ export const deepVerify = (
         for (const [key, value] of Object.entries(restriction)) {
             // Simply an object, let get and store its result
             if (!Array.isArray(value)) {
-                const result = actionsByKey[key as RestrictionsKeys](
+                const result = await actionsByKey[key as RestrictionsKeys](
                     value,
                     conditions,
                 )
@@ -123,11 +128,15 @@ export const deepVerify = (
                     return { ...acc, ...curr }
                 })
                 // Continue until we can verify the next object
-                deepTraverse(nextRestriction, conditions, key as BinaryKeys)
+                await deepTraverse(
+                    nextRestriction,
+                    conditions,
+                    key as BinaryKeys,
+                )
             }
         }
     }
 
-    deepTraverse(restriction, conditions)
+    await deepTraverse(restriction, conditions)
     return { results }
 }

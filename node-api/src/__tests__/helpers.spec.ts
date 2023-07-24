@@ -9,13 +9,8 @@ import {
 import { verifyDateRange, verifyAgeRange } from '../utils/helpers'
 
 const mock = {
-    date: new Date(),
     age: 30,
-    meteo: {
-        is: 'clear',
-        temp: 22,
-        town: 'Lyon',
-    },
+    meteo: { town: 'Lyon' },
 }
 
 describe('verifyDateRange', () => {
@@ -54,41 +49,41 @@ describe('verifyAgeRange', () => {
             eq: 30,
             gt: 30,
         }
-        expect(() => verifyAgeRange(ageRestriction, mock.age)).toThrow()
+        expect(() => verifyAgeRange(ageRestriction, mock)).toThrow()
     })
     it('should validate the age', () => {
         const ageRestriction: AgeRestrictionsType = {
             eq: 30,
         }
-        expect(verifyAgeRange(ageRestriction, mock.age)).toBe(true)
+        expect(verifyAgeRange(ageRestriction, mock)).toBe(true)
     })
     it('should validate the age range', () => {
         const ageRestriction: AgeRestrictionsType = {
             lt: 32,
             gt: 28,
         }
-        expect(verifyAgeRange(ageRestriction, mock.age)).toBe(true)
+        expect(verifyAgeRange(ageRestriction, mock)).toBe(true)
     })
     it('should validate the age, because it is younger', () => {
         const ageRestriction: AgeRestrictionsType = {
             gt: 22,
         }
-        expect(verifyAgeRange(ageRestriction, mock.age)).toBe(true)
+        expect(verifyAgeRange(ageRestriction, mock)).toBe(true)
     })
     it('should not validate the age, because it is too old', () => {
         const ageRestriction: AgeRestrictionsType = {
             lt: 29,
         }
-        expect(verifyAgeRange(ageRestriction, mock.age)).toBe(false)
+        expect(verifyAgeRange(ageRestriction, mock)).toBe(false)
     })
 })
 
 describe('weather service', () => {
     it('should return Lyon coordinates', async () => {
-        const { lat, lon } = await getCityCoordinates(mock.meteo.town)
+        const { lat, lon } = await getCityCoordinates(mock.meteo?.town!)
         expect({ lat, lon }).toStrictEqual({ lat: 45.7578137, lon: 4.8320114 })
     })
-    it.only('should return an error if the city is unknown', async () => {
+    it('should return an error if the city is unknown', async () => {
         await expect(() => getWeatherAtCity('unknowCity')).rejects.toThrowError(
             `unknow city: unknowCity`,
         )
