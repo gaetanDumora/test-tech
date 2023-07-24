@@ -1,5 +1,6 @@
+import { Conditions, deepVerify } from '../../utils/helpers'
 import { DB } from '../database/database'
-import { PromocodeType } from './promocodes.schema'
+import { PromocodeType, RestrictionsValues } from './promocodes.schema'
 
 export const promocodeDB = {
     get: (name: string): Promise<PromocodeType> => {
@@ -18,4 +19,16 @@ export const promocodeDB = {
             resolve({ id: promocode._id })
         })
     },
+}
+
+export const promocodeValidator = async (
+    restrictions: RestrictionsValues[],
+    conditions: Conditions,
+) => {
+    const verifiedRestrictions = []
+    for await (const restriction of restrictions) {
+        const { results } = await deepVerify(restriction, conditions)
+        verifiedRestrictions.push(results)
+    }
+    return verifiedRestrictions.flat()
 }

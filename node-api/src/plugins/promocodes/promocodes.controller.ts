@@ -1,6 +1,11 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
-import { PromocodeType, ValidatePromocodeType } from './promocodes.schema'
-import { promocodeDB } from './promocodes.service'
+import {
+    PromocodeType,
+    RestrictionsValues,
+    ValidatePromocodeType,
+} from './promocodes.schema'
+import { promocodeDB, promocodeValidator } from './promocodes.service'
+import { shouldApprove } from '../../utils/helpers'
 
 export const registerPromocodeHandler = async (
     request: FastifyRequest<{ Body: PromocodeType }>,
@@ -23,7 +28,28 @@ export const validatePromocodeHandler = async (
 ) => {
     const { promocode_name, arguments: conditions } = request.body
     try {
-        const { restrictions } = await promocodeDB.get(promocode_name)
+        const { restrictions, avantage, name } = await promocodeDB.get(
+            promocode_name,
+        )
+        const result = await promocodeValidator(
+            restrictions as RestrictionsValues[],
+            conditions,
+        )
+        const { reason } = shouldApprove(result)
+
+        if (reason) {
+            return reply.code(500).send({
+                promocode_name: name,
+                status: 'denied',
+                avantage,
+                reason,
+            })
+        }
+        return reply.code(202).send({
+            promocode_name: name,
+            status: 'accepted',
+            avantage,
+        })
     } catch (error) {
         request.log.error(error)
         return reply.code(500).send(error)

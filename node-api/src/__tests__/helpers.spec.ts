@@ -1,16 +1,56 @@
 import {
     AgeRestrictionsType,
     DateRestrictionsType,
+    RestrictionsValues,
 } from '../plugins/promocodes/promocodes.schema'
+import { promocodeValidator } from '../plugins/promocodes/promocodes.service'
 import {
     getCityCoordinates,
     getWeatherAtCity,
 } from '../plugins/weather/weather.service'
-import { verifyDateRange, verifyAgeRange } from '../utils/helpers'
+import {
+    verifyDateRange,
+    verifyAgeRange,
+    shouldApprove,
+    Conditions,
+} from '../utils/helpers'
 
 const mock = {
     age: 30,
     meteo: { town: 'Lyon' },
+    restrictions: [
+        {
+            '@date': {
+                after: '2023-01-01',
+                before: '2024-06-30',
+            },
+        },
+        {
+            '@or': [
+                {
+                    '@age': {
+                        eq: 30,
+                    },
+                },
+                {
+                    '@and': [
+                        {
+                            '@age': {
+                                lt: 31,
+                                gt: 15,
+                            },
+                        },
+                    ],
+                },
+            ],
+        },
+    ],
+    conditions: {
+        promocode_name: 'WeatherCode',
+        arguments: {
+            age: 25,
+        },
+    },
 }
 
 describe('verifyDateRange', () => {
@@ -87,5 +127,16 @@ describe('weather service', () => {
         await expect(() => getWeatherAtCity('unknowCity')).rejects.toThrowError(
             `unknow city: unknowCity`,
         )
+    })
+})
+
+describe('promocodeValidator', () => {
+    it('should approve this restriction', async () => {
+        const result = await promocodeValidator(
+            mock.restrictions as RestrictionsValues[],
+            mock.conditions as Conditions,
+        )
+        const { valid } = shouldApprove(result)
+        expect(valid).toBe(true)
     })
 })

@@ -10,6 +10,16 @@ import {
 } from '../plugins/promocodes/promocodes.schema'
 import { getWeatherAtCity } from '../plugins/weather/weather.service'
 
+export type CachedResult = {
+    context?: BinaryKeys
+    results: { key: string; result: boolean }[]
+}
+export type Conditions = {
+    age?: number
+    meteo?: { town: string }
+}
+
+// Validation helpers
 export const verifyDateRange = (dateRestrictions: DateRestrictionsType) => {
     const now = new Date()
     const { after, before } = dateRestrictions
@@ -75,15 +85,7 @@ export const verifyWeather = async (
     if (eq) return temp === parseInt(eq, 10) && isSameDescription
 }
 
-type CachedResult = {
-    context?: BinaryKeys
-    results: { key: string; result: boolean }[]
-}
-type Conditions = {
-    age?: number
-    meteo?: { town: string }
-}
-
+//
 const addToCache = (
     cachedResults: CachedResult[],
     resultToAdd: { key: string; result: boolean },
@@ -139,4 +141,36 @@ export const deepVerify = async (
 
     await deepTraverse(restriction, conditions)
     return { results }
+}
+
+export const shouldApprove = (verifiedRestrictions: CachedResult[]) => {
+    return verifiedRestrictions.reduce<{
+        valid?: boolean
+        context?: BinaryKeys
+        reason?: string
+    }>((prev, { results, context }) => {
+        const reason =
+            results.find(({ result }) => result === false)?.key || prev.reason
+        if (context === '@and') {
+            const allTrue = results.every(({ result }) => result === true)
+            const isValid =
+                prev.context === '@or'
+                    ? prev.valid || allTrue
+                    : prev.valid && allTrue
+            if (!isValid) {
+                prev = { valid: isValid, reason, context }
+            } else {
+                prev = { valid: isValid, context }
+            }
+        } else {
+            const someTrue = results.some(({ result }) => result === true)
+            const isValid = prev.valid || someTrue
+            if (!isValid) {
+                prev = { valid: isValid, reason, context }
+            } else {
+                prev = { valid: isValid, context }
+            }
+        }
+        return prev
+    }, {})
 }

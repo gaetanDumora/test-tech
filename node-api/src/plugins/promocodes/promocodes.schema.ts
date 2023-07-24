@@ -86,7 +86,7 @@ const validatedPromocodeResponse = z.object({
     promocode_name: z.string(),
     status: z.string(),
     avantage: z.record(z.string(), z.unknown()).optional(),
-    reasons: z.record(z.string(), z.unknown()).optional(),
+    reason: z.record(z.string(), z.unknown()).optional(),
 })
 export type ValidateResponsePromocodeType = z.infer<
     typeof validatedPromocodeResponse
