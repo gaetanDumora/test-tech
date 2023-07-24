@@ -85,7 +85,7 @@ export const verifyWeather = async (
     if (eq) return temp === parseInt(eq, 10) && isSameDescription
 }
 
-//
+// Traverse all the restrictions and use validation helper to determine their values
 const addToCache = (
     cachedResults: CachedResult[],
     resultToAdd: { key: string; result: boolean },
@@ -143,12 +143,14 @@ export const deepVerify = async (
     return { results }
 }
 
+// Once everything is is determined, use this function to check if the ticket is valid or not
 export const shouldApprove = (verifiedRestrictions: CachedResult[]) => {
     return verifiedRestrictions.reduce<{
         valid?: boolean
         context?: BinaryKeys
         reason?: string
     }>((prev, { results, context }) => {
+        // If there is an actual or previous reason, get it
         const reason =
             results.find(({ result }) => result === false)?.key || prev.reason
         if (context === '@and') {
@@ -163,6 +165,7 @@ export const shouldApprove = (verifiedRestrictions: CachedResult[]) => {
                 prev = { valid: isValid, context }
             }
         } else {
+            // In OR case context
             const someTrue = results.some(({ result }) => result === true)
             const isValid = prev.valid || someTrue
             if (!isValid) {
